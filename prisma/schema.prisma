@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+  profileId       Int       @unique
+  userName        String    @unique @db.VarChar(30)
+  phoneNumber     String?   @unique @db.VarChar(15)
+  email           String?   @unique @db.VarChar(255)
+  passwordHash    String
+  isPhoneVerified Boolean   @default(false)
+  isEmailVerified Boolean   @default(false)
+  sessionId       String?
+  bio             String?
+  profilePic      String?
+  backgroundImage String?
+  dob             DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  conversations ConversationParticipant[]
+  messages      Message[]
+  rooms         Room[]
+  outgoingCalls CallHistory[] @relation("OutgoingCalls")
+  incomingCalls CallHistory[] @relation("IncomingCalls")
+  posts        Post[]
+  postLikes     PostLike[]
+  comments      PostComment[]
+}
+
+model OTP {
+  id         Int      @id @default(autoincrement())
+  identifier String
+  otpHash    String
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+model Conversation {
+  id String @id @default(uuid())
+
+  type ConversationType @default(DIRECT)
+
+  lastMessage   String?
+  lastMessageAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+} 
+
+model ConversationParticipant {
+  id Int @id @default(autoincrement())
+
+  conversationId String
+  userId         Int
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+model Message {
+  id String @id @default(uuid())
+  conversationId String
+  senderId       Int
+  content String
+  status MessageStatus @default(SENT)
+  isEdited  Boolean @default(false)
+  isDeleted Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@index([senderId])
+}
+
+enum RoomType {
+  LIVE_STREAM
+  AUDIO_CALL
+  VIDEO_CALL
+  AUDIO_ROOM
+}
+
+model Room {
+  id          String    @id @default(uuid())
+
+  hostId      Int
+  roomName    String    @unique
+  
+  title       String?
+  thumbnail   String?
+
+  type        RoomType
+  isLive      Boolean   @default(true)
+ 
+  viewerCount Int       @default(0)
+
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  host        User      @relation(fields: [hostId], references: [id])
+
+  @@index([hostId])
+  @@index([isLive])
+}
+
+enum CallType {
+  AUDIO
+  VIDEO
+}
+
+enum CallStatus {
+  MISSED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+model CallHistory {
+  id          Int          @id @default(autoincrement())
+
+  callerId    Int
+  receiverId  Int
+
+  caller      User         @relation("OutgoingCalls", fields: [callerId], references: [id])
+  receiver    User         @relation("IncomingCalls", fields: [receiverId], references: [id])
+
+  callType    CallType
+  callStatus  CallStatus
+
+  startedAt   DateTime?
+  endedAt     DateTime?
+  duration    Int?         // Duration in seconds
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([callerId])
+  @@index([receiverId])
+  @@index([callStatus])
+}
+
+model Post {
+  id         Int           @id @default(autoincrement())
+  userId     Int
+  imageUrl   String
+  caption    String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes      PostLike[]
+  comments   PostComment[]
+}
+
+model PostLike {
+  id         Int       @id @default(autoincrement())
+  postId     Int
+  userId     Int
+  createdAt  DateTime  @default(now())
+
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+model PostComment {
+  id         Int       @id @default(autoincrement())
+  postId     Int
+  userId     Int
+  comment    String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
