@@ -2,6 +2,7 @@ import app from "./app";
 import { connectDb } from "./config/database";
 import { otpCleanup } from "./services/auth/auth.service";
 import { logger } from "./utils/Logger";
+import http from "http";
 import https from "https";
 import fs from "fs";
 import path from "path";
@@ -18,24 +19,36 @@ const startServer = async () => {
     await connectDb();
     otpCleanup();
 
-    const httpsOptions = {
-      key: fs.readFileSync(
-        path.join(__dirname, "../certs/localhost-key.pem")
-      ),
-      cert: fs.readFileSync(
-        path.join(__dirname, "../certs/localhost.pem")
-      ),
-    };
+    let server: http.Server | https.Server;
 
-    const server = https.createServer(httpsOptions, app);
+    if (envConfig.isDevelopment) {
+      const httpsOptions = {
+        key: fs.readFileSync(
+          path.join(__dirname, "../certs/localhost-key.pem")
+        ),
+        cert: fs.readFileSync(
+          path.join(__dirname, "../certs/localhost.pem")
+        ),
+      };
+
+      server = https.createServer(httpsOptions, app);
+
+      logger.info("Starting HTTPS server (Development)");
+    } else {
+      server = http.createServer(app);
+
+      logger.info("Starting HTTP server (Production)");
+    }
 
     // Initialize Socket.IO
     initSocket(server);
 
     server.listen(PORT, () => {
-      logger.success(
-        `HTTPS Server running on https://localhost:${PORT}`
-      );
+      if (envConfig.isDevelopment) {
+        logger.success(`HTTPS Server running on https://localhost:${PORT}`);
+      } else {
+        logger.success(`HTTP Server running on port ${PORT}`);
+      }
     });
 
     process.on("SIGINT", () => {
@@ -46,7 +59,6 @@ const startServer = async () => {
         process.exit(0);
       });
     });
-
   } catch (error) {
     logger.error("Failed to connect to the database", error);
     process.exit(1);
