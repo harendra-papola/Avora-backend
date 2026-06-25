@@ -15,6 +15,11 @@ app.use((err: any, req: any, res: any, next: any) => {
   console.log("JSON ERROR:", err.message);
   next(err);
 });
+
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
 app.use("/api", userRoutes);
 app.use(errorHandler);//should be in the last
 export default app;
