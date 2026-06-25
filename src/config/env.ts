@@ -17,11 +17,15 @@ const optionalEnvVars = {
   LOG_LEVEL: "debug",
 };
 
+const nodeEnv = process.env.NODE_ENV || optionalEnvVars.NODE_ENV;
+
 /**
  * Validate environment variables on startup
  */
 export const validateEnv = (): void => {
-  const missing = requiredEnvVars.filter((envVar) => !process.env[envVar]);
+  const missing = requiredEnvVars.filter(
+    (envVar) => !process.env[envVar]
+  );
 
   if (missing.length > 0) {
     throw new Error(
@@ -38,25 +42,31 @@ export const envConfig = {
   database: {
     url: process.env.DATABASE_URL!,
   },
+
   jwt: {
     secret: process.env.JWT_SECRET!,
-    expiresIn: process.env.JWT_EXPIRE_IN || optionalEnvVars.JWT_EXPIRE_IN,
+    expiresIn:
+      process.env.JWT_EXPIRE_IN || optionalEnvVars.JWT_EXPIRE_IN,
   },
 
   // Optional with defaults
   server: {
     port: Number(process.env.PORT) || Number(optionalEnvVars.PORT),
-    nodeEnv: process.env.NODE_ENV || optionalEnvVars.NODE_ENV,
-    clientUrl: process.env.CLIENT_URL || optionalEnvVars.CLIENT_URL,
+    nodeEnv,
+    clientUrl:
+      process.env.CLIENT_URL || optionalEnvVars.CLIENT_URL,
   },
+
   otp: {
     expiryMinutes:
       Number(process.env.OTP_EXPIRY_MINUTES) ||
       Number(optionalEnvVars.OTP_EXPIRY_MINUTES),
   },
+
   logger: {
     level: process.env.LOG_LEVEL || optionalEnvVars.LOG_LEVEL,
   },
+
   email: {
     user: process.env.EMAIL_USER,
     password: process.env.EMAIL_PASSWORD,
@@ -64,8 +74,8 @@ export const envConfig = {
   },
 
   // Helpers
-  isDevelopment: (process.env.NODE_ENV || optionalEnvVars.NODE_ENV) === "development",
-  isProduction: (process.env.NODE_ENV || optionalEnvVars.NODE_ENV) === "production",
+  isDevelopment: nodeEnv === "development",
+  isProduction: nodeEnv === "production",
 };
 
 export default envConfig;
