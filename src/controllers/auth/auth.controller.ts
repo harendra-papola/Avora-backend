@@ -47,7 +47,7 @@ export const logoutUser = async ( req: Request, res: Response, next: NextFunctio
     }
 };
 
-export const forgotPasswordContoller = async ( req: Request, res: Response, next: NextFunction) => {
+export const forgotPasswordController = async ( req: Request, res: Response, next: NextFunction) => {
     try {
          const result = await authService.forgotPassword(req.body);
         res.status(200).json(result);

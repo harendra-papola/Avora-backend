@@ -24,9 +24,9 @@ import {
   sendOtp,
   loginUser,
   logoutUser,
-  forgotPasswordContoller,
+  forgotPasswordController,
   resetPasswordController,
-} from "../controllers/auth/auth.contoller";
+} from "../controllers/auth/auth.controller";
 import { authenticate } from "../middlewares/auth/auth.middleware";
 import {
   createToken,
@@ -49,7 +49,7 @@ const router = Router();
 router.post("/register", register);
 router.post("/send-otp", sendOtp);
 router.post("/login", loginUser);
-router.post("/forgot-password", forgotPasswordContoller);
+router.post("/forgot-password", forgotPasswordController);
 router.post("/resetPassword", resetPasswordController);
 
 // ==================== PROTECTED ROUTES ====================
