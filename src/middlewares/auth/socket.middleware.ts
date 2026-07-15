@@ -8,6 +8,8 @@ export const authenticateSocket = async (
   next: (err?: Error) => void
 ) => {
   try {
+    console.log("Socket Connected");
+    console.log("User ID:", socket.data.userId);
     const token = socket.handshake.auth?.token;
 
     if (!token) {
@@ -15,7 +17,7 @@ export const authenticateSocket = async (
     }
 
     const decoded = verifyToken(token);
-
+    console.log("Decoded:", decoded);
     if (!decoded?.userId || !decoded?.sessionId) {
       throw new UnauthorizedError("Invalid token payload");
     }
@@ -33,7 +35,7 @@ export const authenticateSocket = async (
     socket.data.userId = user.id;
     socket.data.userName = user.userName;
     socket.data.profilePic=user.profilePic;
-
+    console.log("Authenticated user:", socket.data.userId);
     next();
   } catch (error) {
     next(

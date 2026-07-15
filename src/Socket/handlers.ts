@@ -26,7 +26,7 @@ const userId = socket.data.userId;
   profilePic: socket.data.profilePic,
   socketId: socket.id,
 });
-  
+  console.log("Online Users:", [...onlineUsers.values()]);
 io.emit(
   USER_EVENTS.ONLINE_USERS,
   Array.from(onlineUsers.values())
