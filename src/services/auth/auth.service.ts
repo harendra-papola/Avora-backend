@@ -1,25 +1,14 @@
-import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import cron from "node-cron";
+import { Resend } from "resend";
 import * as authRepository from "../../repositories/auth/auth.repository";
 import { LoginDto, OtpDto, otpEmailDto, RegisterUserDto,ResetPasswordDto,verifyOtpDto} from "../../dto/auth/auth.dto";
 import { BadRequestError, ConflictError, UnauthorizedError } from "../../utils/error";
 import { generateToken } from "../../utils/jwt";
 import { formatResponse } from "../../utils/Response";
 
-export const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_APP_PASSWORD,
-    },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendOtpEmail = async (
   data: otpEmailDto
@@ -28,8 +17,8 @@ export const sendOtpEmail = async (
 
   const isPasswordReset = type === "password_reset";
 
-  await transporter.sendMail({
-    from: `"Auth Team" <${process.env.EMAIL_USER}>`,
+  await resend.emails.send({
+    from: `"Auth Team"  <onboarding@resend.dev>`,
     to: email,
     subject: isPasswordReset
       ? "Password Reset OTP"
