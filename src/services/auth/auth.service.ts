@@ -132,6 +132,8 @@ export const generateAndSendOtp = async (data: OtpDto) => {
     }
    await authRepository.createOtpRecord(email, otpHash, new Date(Date.now() + 10 * 60 * 1000)); 
   } catch (error) {
+    console.error("OTP Email Error:", error);
+    console.log("User credentials:", {user: process.env.EMAIL_USER, pass: process.env.EMAIL_APP_PASSWORD});
     throw new BadRequestError("Failed to send OTP email");
   }
 
